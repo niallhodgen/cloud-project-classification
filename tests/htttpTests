@@ -1,0 +1,41 @@
+   <?php
+
+    function testValidRequest(): void
+    {
+        $expectedOutput = '{"error":false,"Programming=77&Computing Foundations=66&Databases=77&Web Development=66&Software Engineering=77&Data Analysis=77&User Experience=88&Cloud Computing=66&answer=Total marks: 671/900"}';
+        $curl = curl_init("http://totalmark.40040160.qpc.hal.davecutting.uk/");
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1,);
+        curl_setopt($curl, CURLOPT_POST, 1);
+        curl_setopt($curl, CURLOPT_POSTFIELDS,
+                    "Programming=77&Computing Foundations=66&Databases=77&Web Development=66&Software Engineering=77&Data Analysis=77&User Experience=88&Cloud Computing=66");
+        $output = curl_exec($curl);
+        $code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+        curl_close($curl);
+
+        $this->assertEquals(200, $code);
+
+        $this->assertEquals($expectedOutput, $output);
+    }
+
+    function testInvalidRequest(): void
+    {
+        $expectedOutput = '{"error":true,"string":"Error: ensure you have entered marks for every module","answer":""}';
+        $curl = curl_init("http://totalmark.40040160.qpc.hal.davecutting.uk");
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        $expectedOutput = '{"error":false,"Programming=77&Computing Foundations=66&Databases=77
+            &Web Development=66&Software Engineering=77&Data Analysis=77&User Experience=88&Cloud Computing=66&answer=Total marks: 671/900"}';
+        $curl = curl_init("http://totalmark.40040160.qpc.hal.davecutting.uk/");
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1,);
+        curl_setopt($curl, CURLOPT_POST, 1);
+        curl_setopt($curl, CURLOPT_POSTFIELDS,
+                    "Programming=&ComputingFoundations=&Databases=&WebDevelopment=&SoftwareEngineering=&DataAnalysis=&UserExperience=&CloudComputing=");
+        $output = curl_exec($curl);
+        $code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+        curl_close($curl);
+
+        $this->assertEquals(400, $code);
+
+        $this->assertEquals($expectedOutput, $output);
+    }

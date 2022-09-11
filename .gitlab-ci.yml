@@ -1,0 +1,35 @@
+# Select image from https://hub.docker.com/_/php
+image: php:8.0
+
+stages:
+  - test
+  - deploy
+
+test:app:
+  script:
+    # Install dependencies
+    - bash docker_install.sh > /dev/null
+    - phpunit --configuration phpunit.xml
+
+variables:
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+  # Tell 'docker:dind' to enable TLS (recommended)
+  # and generate certificates in the specified directory.
+  DOCKER_TLS_CERTDIR: "/certs"
+
+build-push-docker-image-job:
+  stage: deploy
+  # Specify a Docker image to run the job in.
+  image: docker
+  tags:
+    # Ensures only runners with Docker installed are assigned to pipeline
+    - dind
+  # Specify an additional image 'docker:dind' ("Docker-in-Docker") that
+  # will start up the Docker daemon when it is brought up by a runner.
+  services:
+    - docker:dind
+  script:
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
+    - docker build -t $CI_REGISTRY_IMAGE .
+    - docker push $CI_REGISTRY_IMAGE
+    - echo "Docker image built and pushed!"
